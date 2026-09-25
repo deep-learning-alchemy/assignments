@@ -2,7 +2,7 @@ from modal_train import launch_training_jobs
 from train import TrainConfig
 
 
-EXPERIMENT_KEY = "a1-basics-p6"
+EXPERIMENT_KEY = "a1-basics-p5"
 
 
 RUNS = [

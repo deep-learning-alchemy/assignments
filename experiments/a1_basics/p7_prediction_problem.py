@@ -10,7 +10,7 @@ from model_config import LMConfig
 from train import TrainConfig
 
 
-EXPERIMENT_KEY = "a1-basics-p8"
+EXPERIMENT_KEY = "a1-basics-p7"
 
 
 def d8w64_config():
