@@ -10,6 +10,9 @@ For the model, data, optimizer, loss, and checkpointing details, read
 For running on your own CUDA GPU or a non-course Slurm cluster without Modal, read
 [gpu/README.md](gpu/README.md).
 
+For using Modal in your own workspace without access to the course's shared data,
+read [README_MODAL_OWN_WORKSPACE.md](README_MODAL_OWN_WORKSPACE.md).
+
 Course handouts are distributed separately.
 
 This release includes only the default-run and LR-tuning examples below. The
