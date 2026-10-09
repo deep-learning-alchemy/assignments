@@ -15,10 +15,10 @@ read [README_MODAL_OWN_WORKSPACE.md](README_MODAL_OWN_WORKSPACE.md).
 
 Course handouts are distributed separately.
 
-This release includes only the default-run and LR-tuning examples below. The
-assignment PDF includes code snippets and names problem-specific experiment
-files; those files are not bundled. Create your own experiments using the
-LR-tuning example as a template.
+The default-run and LR-tuning examples below cover setup and the experiment
+workflow. Assignment 3 starters and measurement tools are in
+[experiments/a3_optimization](experiments/a3_optimization/README.md). The
+assignment handout is distributed separately; solutions are not bundled.
 
 
 ## 0. Setting up Modal

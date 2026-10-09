@@ -155,9 +155,24 @@ def resolve_metric_fn(fn: MetricFnSpec) -> MetricFn:
 
 def importable_metric_loggers(loggers: Sequence[MetricLogger]) -> tuple[MetricLogger, ...]:
     return tuple(
-        MetricLogger(event=logger.event, fn=metric_fn_import_path(logger.fn))
+        MetricLogger(event=logger.event, fn=importable_metric_fn(logger.fn))
         for logger in loggers
     )
+
+
+def importable_metric_fn(fn: MetricFnSpec) -> MetricFnSpec:
+    """Functions become import paths. A callable object whose class lives in an
+    importable module (e.g. sharpness_logging.SharpnessLogger(every=25)) is kept
+    as is, so its constructor arguments travel with the pickled config."""
+    cls = type(fn)
+    if (
+        not isinstance(fn, str)
+        and not hasattr(fn, "__qualname__")
+        and cls.__module__ not in ("__main__", "builtins")
+        and "<locals>" not in cls.__qualname__
+    ):
+        return fn
+    return metric_fn_import_path(fn)
 
 
 def metric_fn_import_path(fn: MetricFnSpec) -> str:

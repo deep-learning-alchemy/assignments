@@ -347,6 +347,7 @@ class TrainingCheckpointer:
         optimizer,
         wandb_run_id=None,
         force=False,
+        extra_state=None,
     ):
         if not self.enabled:
             return False
@@ -368,6 +369,7 @@ class TrainingCheckpointer:
             "rng_state": capture_rng_state(),
             "wandb_run_id": wandb_run_id,
             "metadata": self.metadata,
+            **(extra_state or {}),
         }
         saved = False
         if should_save_latest:

@@ -89,6 +89,7 @@ IGNORED_SOURCE_PARTS = {
     "ckpts",
     "data",
     "plots",
+    "results",
     "slurmjobs",
     "temp_scripts",
     "wandb",

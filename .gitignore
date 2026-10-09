@@ -6,6 +6,7 @@ cache/
 ckpts/
 data/
 plots/
+results/
 temp_scripts/
 slurmjobs/
 
