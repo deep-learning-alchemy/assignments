@@ -94,3 +94,68 @@ def load_model(run=None, root=SHARED_ROOT, device='cuda', verify=True):
     # RoPE frequencies are nonpersistent, so the checkpoint cannot fill them.
     model.model.rotary_emb = LlamaRotaryEmbedding(config).to(device)
     return model.eval()
+
+
+def plot_loss_vs_parameters(release, output='plots/a5_capacity/loss_vs_parameters.png'):
+    """Problem 1(a): all LR trials faintly; best available LR at each shape."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    rows = [r for r in release['runs'] if r['seed'] == 42 and r['tokens'] == 614_400_000
+            and r['depth'] in DEPTHS and r['width'] in [ratio*r['depth'] for ratio in RATIOS]
+            and r['val_loss'] is not None and math.isfinite(r['val_loss'])]
+    if not rows:
+        raise ValueError('No finite seed-42, full-budget ratio-grid runs in this manifest.')
+    # Use every completed history, including trials with no retained checkpoint.
+    selected = {}
+    for row in rows:
+        shape = row['depth'], row['width']
+        if shape not in selected or row['val_loss'] < selected[shape]['val_loss']:
+            selected[shape] = row
+
+    style = {'font.family':'serif', 'font.serif':['Palatino', 'P052', 'DejaVu Serif'],
+             'font.size':11, 'axes.spines.top':False, 'axes.spines.right':False}
+    colors = ('#5178D5', '#7030A0', '#2B8D6E', '#F8961E', '#C7A020')
+    with plt.rc_context(style):
+        fig, ax = plt.subplots(figsize=(7, 5))
+        for ratio, color in zip(RATIOS, colors):
+            trials = [r for r in rows if r['width'] == ratio*r['depth']]
+            points = [selected[d, ratio*d] for d in DEPTHS if (d, ratio*d) in selected]
+            ax.scatter([r['parameters']/1e6 for r in trials], [r['val_loss'] for r in trials],
+                       color=color, s=16, alpha=.15)
+            ax.plot([r['parameters']/1e6 for r in points], [r['val_loss'] for r in points],
+                    'o-', color=color, linewidth=1.5, markersize=5, label=f'W/D = {ratio}')
+        ax.set(xscale='log', xlabel='Total parameters (millions)',
+               ylabel='Validation loss (nats / next token)',
+               title='Depth and width at 614.4M training positions')
+        ticks = (1, 3, 10, 30, 100, 300, 1000)
+        ax.set_xticks(ticks, [str(t) for t in ticks])
+        ax.set_xlim(min(r['parameters'] for r in rows)/1.2e6,
+                    max(r['parameters'] for r in rows)*1.2e-6)
+        ax.grid(True, which='major', linestyle=':', alpha=.3)
+        ax.legend(title='Best available LR at each shape', frameon=False, fontsize=9)
+        output = Path(output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+    print(f'{output}: {len(selected)}/35 shapes, {len(rows)} LR trials; snapshot {release["published_at"]}')
+    return output
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Plot the supplied losses against total parameters.')
+    parser.add_argument('--local', action='store_true', help='Read a mounted/local A5_REFERENCE_ROOT.')
+    args = parser.parse_args()
+    if args.local:
+        release = manifest()
+    else:
+        # Fetch just the manifest on a Modal CPU; draw and save the PNG locally.
+        import modal
+        from modal_utils import app, build_image, VOLUME_MOUNTS, MODAL_ENVIRONMENT
+        remote = app.function(image=build_image(), volumes=VOLUME_MOUNTS,
+                              cpu=1, memory=1024, timeout=300)(manifest)
+        with modal.enable_output(), app.run(environment_name=MODAL_ENVIRONMENT):
+            release = remote.remote()
+    plot_loss_vs_parameters(release)

@@ -83,6 +83,47 @@ If a logging outage required recovery, the run's `history_recovery` entry
 identifies recorded stdout losses (rounded to six decimals) and exact saved
 validation measurements. No missing losses are interpolated.
 
+## Problem 1(a): plot loss versus parameters
+
+Run this explicit plotting example from the repository root:
+
+```bash
+uv run python -m experiments.a5_capacity.p1_depth_width
+```
+
+It fetches only `manifest.json` from the shared Modal volume using a CPU worker,
+then saves **`plots/a5_capacity/loss_vs_parameters.png` locally**. It needs your
+configured Modal environment and course-workspace access; no GPU, W&B API call,
+checkpoint download, or new training is needed.
+
+The plot has one color per width/depth ratio `W/D` and a logarithmic parameter
+axis. Faint points show all available LR trials; connected circles select the
+lowest final validation loss at each of the 35 shapes, using seed 42 and the
+same 614.4M-position training budget. Counts include embeddings and the untied
+output head. Selection includes trials whose checkpoints were pruned, unlike
+`best()`, which selects retained weights. The number of LR trials differs
+between shapes; these are the best **available** losses.
+
+With a local copy or mounted reference directory, use:
+
+```bash
+A5_REFERENCE_ROOT=/path/to/a5_capacity/v1 uv run python -m experiments.a5_capacity.p1_depth_width --local
+```
+
+The editable plotting function is in `p1_depth_width.py`; its core comparison is
+`row['parameters'] / 1e6` against `row['val_loss']`. You can also call it directly:
+
+```python
+from experiments.a5_capacity import p1_depth_width as refs
+
+release = refs.manifest(root="/path/to/a5_capacity/v1")
+refs.plot_loss_vs_parameters(release, output="plots/my_depth_width.png")
+```
+
+For the worksheet's compute comparison, `training_flops()` supplies the FLOP
+estimate for each run's architecture. Parameter count and compute are separate
+axes; this example shows the parameter comparison.
+
 ## Run a new experiment
 
 Edit the call at the bottom of a problem file, then run its module, for example:
