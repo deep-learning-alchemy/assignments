@@ -8,7 +8,8 @@ repository root, using your configured data, W&B project, and Modal environment.
 | 1: depth and width | [p1_depth_width.py](p1_depth_width.py): shapes, parameter/FLOP estimates, reference loaders |
 | 2: readout bottlenecks | [p2_readout.py](p2_readout.py): factorized heads, MoS, Sigsoftmax, CPLM, SpamLang |
 | 3: mixture of experts | [p3_moe.py](p3_moe.py): four SwiGLU experts and editable routing |
-| 4: looping | [p4_looping.py](p4_looping.py): prelude, shared core, coda, optional boundary map |
+| 4: looping | [p4_looping.py](p4_looping.py): prelude, shared core, coda, optional boundary map, mid-run sharing switch |
+| 5: prediction question | Write a compact experiment using the model and launch helpers above |
 
 These classes reuse the native transformer and trainer. The algorithm equations
 are in the problem files; [sweeps.py](sweeps.py) defines editable configurations
@@ -23,7 +24,7 @@ manifest records the current counts and publication time.
 - Public W&B project: [hashimoto-group/public-alchemy-a5](https://wandb.ai/hashimoto-group/public-alchemy-a5/overview), tag `a5-capacity-v1`.
 - Modal environment: `cs312-shared-data`, volume: `hard-dl-dclm-v1`.
 - Read-only mount: `/root/shared_data/a5_capacity/v1`; its `manifest.json` lists
-  list public run links, architectures, learning rates, losses, metric histories,
+  public run links, architectures, learning rates, losses, metric histories,
   and retained checkpoint paths/checksums.
 
 The ratio grid is depths 4–10 with widths `W = ratio * D`, for
@@ -40,7 +41,8 @@ All use 600,000 sequences (614.4M tokens), with embeddings and the untied head
 included in parameter counts. The extremes each have one LR and seed42.
 Use the supplied runs for Problem 1; no new training is expected. The release
 includes all completed LR trials, **not a complete five-LR sweep at every
-shape**. Compare tuning effort and fixed-LR controls when interpreting small gaps.
+shape**. We are still training the full grid for all of the width/depth
+combinations. Compare tuning effort and fixed-LR controls when interpreting small gaps.
 
 Histories include LR trials whose checkpoints were not retained; check
 `row['checkpoint']` before attempting to load weights. `best()` selects the
@@ -159,7 +161,33 @@ Detailed probes run separately from training on matched held-out positions.
 
 `loop-r{1,2,3,6}` keeps eight block applications. `loop-1block-rR` fixes three
 distinct blocks and executes `R+2` applications. Set `model.eval_passes` only
-after `model.eval()` to test another inference loop count.
+after `model.eval()` to test another inference loop count. Untied models can only
+use the independent blocks they contain.
+
+For Problem 4(e), `loop-to-unique` and `unique-to-loop` switch after update
+4,688 of 9,375; `loop-reset` and `unique-reset` are matched Adam-reset controls.
+All four execute eight blocks. Untying clones values into six independent core
+blocks; tying averages their parameters (set `merge="first"` to retain the first).
+The prelude, coda and boundary map stay in place. Adam moments reset across the
+whole model, while LR, data order and token count continue. Use `sweeps.train` or
+`launch_one`, one visible GPU, the default four microbatches, and no EMA. Model
+and optimizer checkpoints preserve sharing, the update counter and the switch
+stage when resuming. Final native model checkpoints also restore their sharing.
+The launch helper measures native validation loss immediately before/after the
+switch, logs `switch/before_val_loss` and `switch/after_val_loss` to W&B, and saves
+both values in `switch_metrics.json` alongside your checkpoint.
+
+```python
+launch_one("loop-to-unique", .003)
+launch_one("unique-to-loop", .003)
+launch_one("loop-reset", .003)
+launch_one("unique-reset", .003)
+```
+
+For a shorter training budget, override `model_builder_kwargs` with the complete
+options dictionary, including a midpoint `switch_step` for that budget.
+`model.set_sharing(False)` or `model.set_sharing(True, merge="mean")` also performs
+the conversion explicitly; rebuild the optimizer after manual conversion.
 
 Synthetic CPU checks require no downloaded data or cloud connection:
 

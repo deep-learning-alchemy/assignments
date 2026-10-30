@@ -201,6 +201,75 @@ class Algorithms(unittest.TestCase):
         expected=model.lm_head(model.model.norm(model.model.layers[-1](h,rope)))
         torch.testing.assert_close(model(x),expected,rtol=2e-5,atol=2e-5)
 
+    def test_untying_preserves_function_and_splits_parameters(self):
+        x=torch.randint(32,(2,8))
+        for norm,recall in [(False,0.),(True,1.)]:
+            model=LoopLM(tiny(8),passes=6,boundary_norm=norm,recall=recall).eval()
+            initialize_model(model)
+            before=model(x);n=sum(p.numel() for p in model.parameters())
+            model.set_sharing(False)
+            torch.testing.assert_close(model(x),before,rtol=0,atol=0)
+            self.assertEqual(len({id(b) for b in model.model.layers[1:-1]}),6)
+            self.assertGreater(sum(p.numel() for p in model.parameters()),n)
+            model(x).square().mean().backward()
+            grads=[b.mlp.up_proj.weight.grad for b in model.model.layers[1:-1]]
+            self.assertTrue(all(g is not None for g in grads))
+            self.assertFalse(torch.equal(grads[0],grads[-1]))
+            model.set_sharing(True)
+            self.assertEqual(sum(p.numel() for p in model.parameters()),n)
+            torch.testing.assert_close(model(x),before,rtol=1e-5,atol=1e-5)
+
+    def test_tying_mean_and_first(self):
+        model=LoopLM(tiny(8),passes=3,tied=False)
+        initialize_model(model)
+        for merge in ('mean','first'):
+            m=deepcopy(model)
+            expected=[]
+            for j in range(2):
+                group=list(m.model.layers)[1+j:-1:2]
+                values=[b.mlp.up_proj.weight.detach().clone() for b in group]
+                expected.append(torch.stack(values).mean(0) if merge=='mean' else values[0])
+            m.set_sharing(True,merge)
+            for j in range(2):
+                torch.testing.assert_close(m.model.layers[1+j].mlp.up_proj.weight,expected[j])
+                self.assertIs(m.model.layers[1+j],m.model.layers[3+j])
+
+    def test_switch_optimizer_and_resume(self):
+        from optimizers import build_optimizer
+        from lr_schedules import build_scheduler
+        x=torch.randint(32,(2,8))
+        def setup(tied,target):
+            m=LoopLM(tiny(8),passes=6,tied=tied,switch_step=2,switch_to=target)
+            initialize_model(m)
+            o=build_optimizer(m,'adamw',.003,.1,.9,.95)
+            m.attach_optimizer(o)
+            s=build_scheduler(o,lr_schedule='linear',warmup_steps=0,total_steps=5)
+            return m,o,s
+        def step(m,o,s):
+            F.cross_entropy(m(x)[:,:-1].flatten(0,1),x[:,1:].flatten()).backward()
+            o.step();s.step();o.zero_grad()
+        for tied,target in [(True,'unique'),(False,'loop'),(True,'reset'),(False,'reset')]:
+            m,o,s=setup(tied,target)
+            step(m,o,s)
+            pre=(deepcopy(m.state_dict()),deepcopy(o.state_dict()),deepcopy(s.state_dict()))
+            step(m,o,s)
+            self.assertFalse(o.state)  # Reset is after Adam's update at the boundary.
+            self.assertEqual(m.completed_steps,2)
+            self.assertEqual(m.tied,tied if target=='reset' else target=='loop')
+            self.assertEqual({id(p) for g in o.param_groups for p in g['params']},
+                             {id(p) for p in m.parameters()})
+            post=(deepcopy(m.state_dict()),deepcopy(o.state_dict()),deepcopy(s.state_dict()))
+            # Resume on each side of the boundary: retain LR, aliases and Adam state.
+            for states,n in [(pre,2),(post,1)]:
+                a,b,c=setup(tied,target)
+                a.load_state_dict(states[0]);b.load_state_dict(states[1]);c.load_state_dict(states[2])
+                for _ in range(n):step(a,b,c)
+                reference,ro,rs=setup(tied,target)
+                reference.load_state_dict(post[0]);ro.load_state_dict(post[1]);rs.load_state_dict(post[2])
+                step(reference,ro,rs)
+                torch.testing.assert_close(a(x),reference(x),rtol=0,atol=0)
+                self.assertEqual(c.get_last_lr(),rs.get_last_lr())
+
     def test_current_presets_are_isolated(self):
         from experiments.a5_capacity.sweeps import config
         for name,options in [('moe-norm',dict(norm=True)),('moe-noisy',dict(noise=.05)),

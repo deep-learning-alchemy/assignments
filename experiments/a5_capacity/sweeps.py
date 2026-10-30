@@ -37,6 +37,14 @@ for key, extra in [('boundary-norm', dict(boundary_norm=True)),
 for passes in (1, 2, 3, 4, 6, 18, 20):
     VARIANTS[f'loop-1block-r{passes}'] = ('experiments.a5_capacity.p4_looping:LoopLM', dict(passes=passes, core_size=1))
 
+# P4(e): the full run has 9,375 updates; switch after update 4,688.
+for name, tied, target in [('loop-to-unique', True, 'unique'),
+                            ('unique-to-loop', False, 'loop'),
+                            ('loop-reset', True, 'reset'),
+                            ('unique-reset', False, 'reset')]:
+    VARIANTS[name] = ('experiments.a5_capacity.p4_looping:LoopLM',
+                      dict(passes=6, tied=tied, switch_step=4688, switch_to=target))
+
 
 def config(name='dense', lr=.003, *, depth=8, width=None, **overrides):
     builder, kwargs = VARIANTS[name]
@@ -50,12 +58,42 @@ def config(name='dense', lr=.003, *, depth=8, width=None, **overrides):
 
 
 def train(config):
-    """One post-optimizer hook updates lagged router biases per effective batch."""
+    """Install the model's update hook without changing the shared trainer."""
     import train as native
+    switching = config.model_builder_kwargs.get('switch_step') is not None
+    if switching and (config.ema_decays or config.num_micro_batches == 1):
+        raise ValueError('Switching uses the default four microbatches and no EMA; avoid compiled parameter captures.')
+    if switching:
+        import torch
+        if torch.cuda.device_count() > 1:
+            raise ValueError('Architecture switching currently supports one visible GPU.')
     original = native.build_optimizer
+    hooks = []
     def build(model, *args, **kwargs):
         optimizer = original(model, *args, **kwargs)
-        if hasattr(model, 'finish_step'):
+        if hasattr(model, 'attach_optimizer') and switching:
+            hooks.extend(model.attach_optimizer(optimizer))
+            if switching:
+                # Measure both sides of the same update, on the native held-out set.
+                import json
+                from pathlib import Path
+                val = native.load_token_dataset(config.val_dataset, role='val', data_seed=config.data_seed)
+                batches = native.create_batches(val, config.batch_size // config.num_micro_batches)
+                path = Path(config.model_dir) / native.training_run_name(config) / 'switch_metrics.json'
+                def observe(model, phase):
+                    loss = float(native.evaluate(model, batches, config, next(model.parameters()).device))
+                    record = dict(phase=phase, completed_steps=model.completed_steps, loss=loss,
+                                  tied=model.tied, parameters=sum(p.numel() for p in model.parameters()))
+                    events = json.loads(path.read_text()) if path.exists() else []
+                    events = [e for e in events if e['phase'] != phase] + [record]
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(json.dumps(events, indent=2))
+                    print('Switch measurement:', record, flush=True)
+                    if config.wandb_online:
+                        import wandb
+                        wandb.log({f'switch/{phase}_val_loss':loss, 'optimizer_step':model.completed_steps-1})
+                model.switch_observer = observe
+        elif hasattr(model, 'finish_step'):
             optimizer.register_step_post_hook(lambda *unused: model.finish_step())
         return optimizer
     native.build_optimizer = build
@@ -63,6 +101,8 @@ def train(config):
         return native.train(config)
     finally:
         native.build_optimizer = original
+        for hook in hooks:
+            hook.remove()
 
 
 def run(config):
