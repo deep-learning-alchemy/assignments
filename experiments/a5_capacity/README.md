@@ -16,20 +16,33 @@ and launch helpers. [diagnostics.py](diagnostics.py) contains the measurements.
 
 ## Supplied depth/width runs
 
-**TODO: publish the completed depth/width grid and finalize its manifest.** The
-locations below are the planned release destinations. Any existing preliminary
-contents may be incomplete; they are not the final grid.
+Completed depth/width runs and retained checkpoints are published at the
+locations below. The release is updated as additional trials finish; its
+manifest records the current counts and publication time.
 
-- Public W&B project: [hashimoto-group/public-alchemy-a5](https://wandb.ai/hashimoto-group/public-alchemy-a5/overview).
+- Public W&B project: [hashimoto-group/public-alchemy-a5](https://wandb.ai/hashimoto-group/public-alchemy-a5/overview), tag `a5-capacity-v1`.
 - Modal environment: `cs312-shared-data`, volume: `hard-dl-dclm-v1`.
-- Read-only mount: `/root/shared_data/a5_capacity/v1`; its `manifest.json` will
+- Read-only mount: `/root/shared_data/a5_capacity/v1`; its `manifest.json` lists
   list public run links, architectures, learning rates, losses, metric histories,
   and retained checkpoint paths/checksums.
 
-The intended grid is depths 4–10 with widths `W = ratio * D`, for
-`ratio in (16, 32, 64, 128, 256)`: 35 architectures. Use the supplied LR trials
-for Problem 1 once published. New training is not expected for that problem.
-Histories will include LR trials whose checkpoints were not retained; check
+The ratio grid is depths 4–10 with widths `W = ratio * D`, for
+`ratio in (16, 32, 64, 128, 256)`: all 35 architectures are represented.
+Additional shapes include the two parameter-matched extremes for Problem 1(b):
+
+| Shape | Total parameters | Reference LR |
+|---|---:|---:|
+| Default: 8 layers × width 512 | 34,612,736 | .003 |
+| Deep and skinny: 62 layers × width 192 | 34,745,536 | .003 |
+| Shallow and wide: 1 layer × width 1280 | 34,246,528 | .003 |
+
+All use 600,000 sequences (614.4M tokens), with embeddings and the untied head
+included in parameter counts. The extremes each have one LR and seed42.
+Use the supplied runs for Problem 1; no new training is expected. The release
+includes all completed LR trials, **not a complete five-LR sweep at every
+shape**. Compare tuning effort and fixed-LR controls when interpreting small gaps.
+
+Histories include LR trials whose checkpoints were not retained; check
 `row['checkpoint']` before attempting to load weights. `best()` selects the
 best finite **retained** checkpoint, which can differ from the best loss over
 all LR histories. Use `runs()` when comparing all trials.
@@ -41,11 +54,28 @@ rows = refs.runs(depth=8, width=512, seed=42)
 row = refs.best(8, 512)
 history = refs.load_history(row)
 model = refs.load_model(row)
+
+# Parameter-matched extremes and the d8 trial at the same LR.
+skinny = refs.best(*refs.EXTREMES['deep_skinny'])
+wide = refs.best(*refs.EXTREMES['shallow_wide'])
+control = next(r for r in rows if r['lr'] == .003)
+skinny_history = refs.load_history(skinny)
+wide_model = refs.load_model(wide)
+
+release = refs.manifest()
+print(release['run_count'], release['checkpoint_count'], release['published_at'])
 ```
 
 These calls read the mounted manifest and files without a W&B API request.
 For local copies, pass `root=...` to the loaders or set `A5_REFERENCE_ROOT`
 before importing. The loaders report a missing manifest explicitly.
+The Modal files require access to the course workspace; W&B curves are publicly
+readable without that access. Record the manifest publication time and run
+cell IDs in your report. Checkpoint paths remain available across updates;
+`snapshots/` contains earlier manifest versions.
+If a logging outage required recovery, the run's `history_recovery` entry
+identifies recorded stdout losses (rounded to six decimals) and exact saved
+validation measurements. No missing losses are interpolated.
 
 ## Run a new experiment
 
@@ -100,7 +130,7 @@ small datasets on the worker.
 
 ## Measure checkpoints
 
-After reference publication, this example loads the supplied default d8 and
+This example loads the supplied default d8 and
 measures held-out loss, projected gradient energy, and signals per block:
 
 ```bash

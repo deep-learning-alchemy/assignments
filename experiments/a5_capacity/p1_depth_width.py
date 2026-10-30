@@ -11,6 +11,8 @@ DEPTHS = tuple(range(4, 11))
 RATIOS = (16, 32, 64, 128, 256)
 PUBLIC_PROJECT = 'hashimoto-group/public-alchemy-a5'
 PUBLIC_URL = 'https://wandb.ai/' + PUBLIC_PROJECT
+RELEASE_TAG = 'a5-capacity-v1'
+EXTREMES = {'deep_skinny': (62, 192), 'shallow_wide': (1, 1280)}
 SHARED_ROOT = Path(os.environ.get('A5_REFERENCE_ROOT', '/root/shared_data/a5_capacity/v1'))
 
 
@@ -41,8 +43,8 @@ def manifest(root=SHARED_ROOT):
     path = Path(root)/'manifest.json'
     if not path.exists():
         raise FileNotFoundError(
-            f'No A5 reference manifest at {path}. Full-grid publication is TODO; '
-            'see README.md for the planned release, or set A5_REFERENCE_ROOT to a local copy.')
+            f'No A5 reference manifest at {path}. Mount the course shared-data volume '
+            'or set A5_REFERENCE_ROOT to a local copy; see README.md for the release location.')
     return json.loads(path.read_text())
 
 

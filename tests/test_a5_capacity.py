@@ -11,7 +11,7 @@ import torch
 from torch.nn import functional as F
 from modeling import AutoregressiveLM,initialize_model
 from model_config import LMConfig
-from experiments.a5_capacity.p1_depth_width import grid,parameters,training_flops
+from experiments.a5_capacity.p1_depth_width import grid,parameters,training_flops,architecture,EXTREMES
 from experiments.a5_capacity.p2_readout import HeadLM
 from experiments.a5_capacity.p2_readout import CPLM
 from experiments.a5_capacity.p3_moe import RouterMLP
@@ -42,7 +42,7 @@ class Algorithms(unittest.TestCase):
         from experiments.a5_capacity.p1_depth_width import best, runs, load_history, manifest
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder)
-            with self.assertRaisesRegex(FileNotFoundError,'publication is TODO'):
+            with self.assertRaisesRegex(FileNotFoundError,'Mount the course shared-data volume'):
                 manifest(root)
             rows=[dict(depth=8,width=512,seed=42,val_loss=loss,checkpoint=checkpoint,
                        cell_id=str(i),history='history.json.gz')
@@ -72,7 +72,7 @@ class Algorithms(unittest.TestCase):
                 del restored
 
     def test_shape_accounting(self):
-        for cfg in grid():
+        for cfg in grid()+[architecture(*shape) for shape in EXTREMES.values()]:
             with torch.device('meta'):model=AutoregressiveLM(cfg)
             self.assertEqual(sum(p.numel() for p in model.parameters()),parameters(cfg))
 
