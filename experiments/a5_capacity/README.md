@@ -73,6 +73,10 @@ The Modal files require access to the course workspace; W&B curves are publicly
 readable without that access. Record the manifest publication time and run
 cell IDs in your report. Checkpoint paths remain available across updates;
 `snapshots/` contains earlier manifest versions.
+Start a fresh Modal job to see a newer snapshot, or call
+`modal_utils.shared_data_volume.reload()` after closing open reference files.
+History `optimizer_step` is zero-based; `(optimizer_step + 1) * 64 * 1024`
+gives the number of training positions processed.
 If a logging outage required recovery, the run's `history_recovery` entry
 identifies recorded stdout losses (rounded to six decimals) and exact saved
 validation measurements. No missing losses are interpolated.
