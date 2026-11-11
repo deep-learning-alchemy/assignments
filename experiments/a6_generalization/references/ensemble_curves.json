@@ -1,0 +1,17 @@
+{
+  "default_epochs": 32,
+  "groups": {
+    "e32_p0": {
+      "chunk_losses_file": "references/ensemble_chunks.npz",
+      "chunk_losses_key": "e32_p0",
+      "ensemble_validation_nll": [
+        1.2619270086288452,
+        1.2570891380310059,
+        1.2555121183395386,
+        1.2547260522842407,
+        1.2542545795440674
+      ]
+    }
+  },
+  "metric": "validation NLL"
+}

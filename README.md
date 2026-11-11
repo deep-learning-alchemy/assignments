@@ -390,3 +390,11 @@ uv run python -m download_data
 ```
 
 See [gpu/README.md](gpu/README.md) for the full non-Modal setup.
+
+
+## Assignment 6: generalization
+
+The [A6 starter](experiments/a6_generalization/README.md) covers DNA architecture,
+regularization, optimization and fine-tuning. Its
+[release plan](experiments/a6_generalization/RELEASE_PLAN.md) lists supplied runs,
+checkpoints and datasets separately from experiments to train.

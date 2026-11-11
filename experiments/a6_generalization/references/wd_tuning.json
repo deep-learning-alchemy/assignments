@@ -1,0 +1,128 @@
+{
+  "comparison": {
+    "epochs": 32,
+    "lr": 0.003,
+    "with_wd_tuning": 3.2,
+    "without_wd_tuning": 0.1
+  },
+  "default_baseline": {
+    "batch": 64,
+    "checkpoint": "checkpoints/baseline_d8_e32_s42.pt",
+    "data_seed": 42,
+    "depth": 8,
+    "epochs": 32,
+    "id": "0baf962ea57fafacec22",
+    "lr": 0.003,
+    "ntrain": 30000,
+    "parameters": 30437888,
+    "schedule": "linear",
+    "seed": 42,
+    "validation_nll": 1.2627138263769448,
+    "wd": 3.2,
+    "width": 512
+  },
+  "expected_runs": 2,
+  "pending": [],
+  "ready": true,
+  "runs": [
+    {
+      "architecture": "dense",
+      "batch": 64,
+      "depth": 8,
+      "epochs": 32,
+      "history": [
+        {
+          "step": 1876,
+          "validation_nll": 1.278929484995082
+        },
+        {
+          "step": 3752,
+          "validation_nll": 1.269763797916472
+        },
+        {
+          "step": 5628,
+          "validation_nll": 1.2741307268915698
+        },
+        {
+          "step": 7504,
+          "validation_nll": 1.2824530443046243
+        },
+        {
+          "step": 9380,
+          "validation_nll": 1.290290081417188
+        },
+        {
+          "step": 11256,
+          "validation_nll": 1.3286538906190544
+        },
+        {
+          "step": 13132,
+          "validation_nll": 1.3278963014930487
+        },
+        {
+          "step": 15008,
+          "validation_nll": 1.4057004241179676
+        }
+      ],
+      "id": "bd649eb7efbf213b6e33",
+      "lr": 0.003,
+      "ntrain": 30000,
+      "parameters": 30437888,
+      "seed": 42,
+      "state": "finished",
+      "validation_nll": 1.4057004241179676,
+      "wd": 0.1,
+      "width": 512
+    },
+    {
+      "architecture": "dense",
+      "batch": 64,
+      "depth": 8,
+      "epochs": 32,
+      "history": [
+        {
+          "step": 1876,
+          "validation_nll": 1.3021741197109222
+        },
+        {
+          "step": 3752,
+          "validation_nll": 1.2926581021696328
+        },
+        {
+          "step": 5628,
+          "validation_nll": 1.3207578377127647
+        },
+        {
+          "step": 7504,
+          "validation_nll": 1.2848520401977002
+        },
+        {
+          "step": 9380,
+          "validation_nll": 1.2813338968455792
+        },
+        {
+          "step": 11256,
+          "validation_nll": 1.2757292010858654
+        },
+        {
+          "step": 13132,
+          "validation_nll": 1.2695048993006348
+        },
+        {
+          "step": 15008,
+          "validation_nll": 1.2627138263769448
+        }
+      ],
+      "id": "0baf962ea57fafacec22",
+      "lr": 0.003,
+      "ntrain": 30000,
+      "parameters": 30437888,
+      "seed": 42,
+      "state": "finished",
+      "validation_nll": 1.2627138263769448,
+      "wd": 3.2,
+      "width": 512
+    }
+  ],
+  "selection": "Fixed WD0.1 versus frozen sweep-selected WD3.2 at LR .003 and32 epochs; separate from the16-epoch recall grid."
+}
