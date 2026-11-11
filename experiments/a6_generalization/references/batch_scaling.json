@@ -1,0 +1,374 @@
+{
+  "default_baseline": {
+    "batch": 64,
+    "checkpoint": "checkpoints/baseline_d8_e32_s42.pt",
+    "data_seed": 42,
+    "depth": 8,
+    "epochs": 32,
+    "id": "0baf962ea57fafacec22",
+    "lr": 0.003,
+    "ntrain": 30000,
+    "parameters": 30437888,
+    "schedule": "linear",
+    "seed": 42,
+    "validation_nll": 1.2627138263769448,
+    "wd": 3.2,
+    "width": 512
+  },
+  "expected_runs": 5,
+  "pending": [],
+  "ready": true,
+  "rule": "LR and WD multiply by sqrt(B/64)",
+  "runs": [
+    {
+      "architecture": "dense",
+      "batch": 16,
+      "checkpoint": "checkpoints/batch_e32/b16.pt",
+      "depth": 8,
+      "epochs": 32,
+      "history": [
+        {
+          "step": 7500,
+          "validation_nll": 1.2914268896467984
+        },
+        {
+          "step": 15000,
+          "validation_nll": 1.2923039348125458
+        },
+        {
+          "step": 22500,
+          "validation_nll": 1.2882250528261066
+        },
+        {
+          "step": 30000,
+          "validation_nll": 1.2848806999102236
+        },
+        {
+          "step": 37500,
+          "validation_nll": 1.2804519391283393
+        },
+        {
+          "step": 45000,
+          "validation_nll": 1.2765248313099147
+        },
+        {
+          "step": 52500,
+          "validation_nll": 1.2706638842746616
+        },
+        {
+          "step": 60000,
+          "validation_nll": 1.26238483100757
+        }
+      ],
+      "id": "8f3947f2fd5d2b31596b",
+      "lr": 0.0015,
+      "ntrain": 30000,
+      "parameters": 30437888,
+      "seed": 42,
+      "sharpness": {
+        "base": 1.218185305595398,
+        "directional": {
+          "0.01": {
+            "max_loss_increase": 0.012371301651000977,
+            "symmetric_curvature": 62.00551986694336
+          },
+          "0.05": {
+            "max_loss_increase": 0.12025332450866699,
+            "symmetric_curvature": 60.099601745605455
+          },
+          "0.1": {
+            "max_loss_increase": 0.3893449306488037,
+            "symmetric_curvature": 60.54186820983885
+          }
+        },
+        "gradient_norm": 0.9345855712890625,
+        "parameter_norm": 118.73853302001953,
+        "probe": "First four fixed training chunks, eval mode, token-mean NLL",
+        "relative_random_1e3": [
+          2.6941299438476562e-05,
+          9.298324584960938e-06,
+          4.5180320739746094e-05
+        ]
+      },
+      "state": "finished",
+      "validation_nll": 1.26238483100757,
+      "wd": 1.6,
+      "width": 512
+    },
+    {
+      "architecture": "dense",
+      "batch": 64,
+      "checkpoint": "checkpoints/batch_e32/b64.pt",
+      "depth": 8,
+      "epochs": 32,
+      "history": [
+        {
+          "step": 1876,
+          "validation_nll": 1.3021741197109222
+        },
+        {
+          "step": 3752,
+          "validation_nll": 1.2926581021696328
+        },
+        {
+          "step": 5628,
+          "validation_nll": 1.3207578377127647
+        },
+        {
+          "step": 7504,
+          "validation_nll": 1.2848520401977002
+        },
+        {
+          "step": 9380,
+          "validation_nll": 1.2813338968455792
+        },
+        {
+          "step": 11256,
+          "validation_nll": 1.2757292010858654
+        },
+        {
+          "step": 13132,
+          "validation_nll": 1.2695048993006348
+        },
+        {
+          "step": 15008,
+          "validation_nll": 1.2627138263769448
+        }
+      ],
+      "id": "0baf962ea57fafacec22",
+      "lr": 0.003,
+      "ntrain": 30000,
+      "parameters": 30437888,
+      "seed": 42,
+      "state": "finished",
+      "validation_nll": 1.2627138263769448,
+      "wd": 3.2,
+      "width": 512
+    },
+    {
+      "architecture": "dense",
+      "batch": 256,
+      "checkpoint": "checkpoints/batch_e32/b256.pt",
+      "depth": 8,
+      "epochs": 32,
+      "history": [
+        {
+          "step": 472,
+          "validation_nll": 1.334013435959816
+        },
+        {
+          "step": 944,
+          "validation_nll": 1.3167773520499468
+        },
+        {
+          "step": 1416,
+          "validation_nll": 1.3191504786014556
+        },
+        {
+          "step": 1888,
+          "validation_nll": 1.3024540899395942
+        },
+        {
+          "step": 2360,
+          "validation_nll": 1.295170083284378
+        },
+        {
+          "step": 2832,
+          "validation_nll": 1.2918766319528223
+        },
+        {
+          "step": 3304,
+          "validation_nll": 1.2800907091088594
+        },
+        {
+          "step": 3776,
+          "validation_nll": 1.2694134644959123
+        }
+      ],
+      "id": "f45fac8badb267c85fb5",
+      "lr": 0.006,
+      "ntrain": 30000,
+      "parameters": 30437888,
+      "seed": 42,
+      "sharpness": {
+        "base": 1.2358038425445557,
+        "directional": {
+          "0.01": {
+            "max_loss_increase": 0.01019597053527832,
+            "symmetric_curvature": 52.83236503601074
+          },
+          "0.05": {
+            "max_loss_increase": 0.10158061981201172,
+            "symmetric_curvature": 52.49304771423339
+          },
+          "0.1": {
+            "max_loss_increase": 0.32066023349761963,
+            "symmetric_curvature": 50.807642936706536
+          }
+        },
+        "gradient_norm": 0.7602424621582031,
+        "parameter_norm": 86.74285888671875,
+        "probe": "First four fixed training chunks, eval mode, token-mean NLL",
+        "relative_random_1e3": [
+          -0.00010287761688232422,
+          -0.00010073184967041016,
+          5.0067901611328125e-06
+        ]
+      },
+      "state": "finished",
+      "validation_nll": 1.2694134644959123,
+      "wd": 6.4,
+      "width": 512
+    },
+    {
+      "architecture": "dense",
+      "batch": 1024,
+      "checkpoint": "checkpoints/batch_e32/b1024.pt",
+      "depth": 8,
+      "epochs": 32,
+      "history": [
+        {
+          "step": 120,
+          "validation_nll": 1.3950876343250274
+        },
+        {
+          "step": 240,
+          "validation_nll": 1.396415163874626
+        },
+        {
+          "step": 360,
+          "validation_nll": 1.39678142786026
+        },
+        {
+          "step": 480,
+          "validation_nll": 1.3906274646520616
+        },
+        {
+          "step": 600,
+          "validation_nll": 1.3757414804697037
+        },
+        {
+          "step": 720,
+          "validation_nll": 1.33812061008811
+        },
+        {
+          "step": 840,
+          "validation_nll": 1.3157427107095718
+        },
+        {
+          "step": 960,
+          "validation_nll": 1.2959017191305757
+        }
+      ],
+      "id": "245937670386b77e2275",
+      "lr": 0.012,
+      "ntrain": 30000,
+      "parameters": 30437888,
+      "seed": 42,
+      "sharpness": {
+        "base": 1.2891206741333008,
+        "directional": {
+          "0.01": {
+            "max_loss_increase": 0.010372400283813477,
+            "symmetric_curvature": 117.2173023223877
+          },
+          "0.05": {
+            "max_loss_increase": 0.169885516166687,
+            "symmetric_curvature": 112.9353046417236
+          },
+          "0.1": {
+            "max_loss_increase": 0.5946698188781738,
+            "symmetric_curvature": 102.16065645217894
+          }
+        },
+        "gradient_norm": 0.443377286195755,
+        "parameter_norm": 89.97966003417969,
+        "probe": "First four fixed training chunks, eval mode, token-mean NLL",
+        "relative_random_1e3": [
+          -2.1457672119140625e-06,
+          -4.1484832763671875e-05,
+          2.3484230041503906e-05
+        ]
+      },
+      "state": "finished",
+      "validation_nll": 1.2959017191305757,
+      "wd": 12.8,
+      "width": 512
+    },
+    {
+      "architecture": "dense",
+      "batch": 4096,
+      "checkpoint": "checkpoints/batch_e32/b4096.pt",
+      "depth": 8,
+      "epochs": 32,
+      "history": [
+        {
+          "step": 32,
+          "validation_nll": 1.412442821264267
+        },
+        {
+          "step": 64,
+          "validation_nll": 1.4024084807634354
+        },
+        {
+          "step": 96,
+          "validation_nll": 1.4089386271238327
+        },
+        {
+          "step": 128,
+          "validation_nll": 1.4192030736207961
+        },
+        {
+          "step": 160,
+          "validation_nll": 1.3991429672241211
+        },
+        {
+          "step": 192,
+          "validation_nll": 1.403112979054451
+        },
+        {
+          "step": 224,
+          "validation_nll": 1.3961900975704193
+        },
+        {
+          "step": 256,
+          "validation_nll": 1.394662320613861
+        }
+      ],
+      "id": "5b60be2e6d3ef2f86f0e",
+      "lr": 0.024,
+      "ntrain": 30000,
+      "parameters": 30437888,
+      "seed": 42,
+      "sharpness": {
+        "base": 1.3834773302078247,
+        "directional": {
+          "0.01": {
+            "max_loss_increase": 0.02403557300567627,
+            "symmetric_curvature": 171.39792442321777
+          },
+          "0.05": {
+            "max_loss_increase": 0.2824336290359497,
+            "symmetric_curvature": 161.69810295104978
+          },
+          "0.1": {
+            "max_loss_increase": 0.8673049211502075,
+            "symmetric_curvature": 138.87342214584348
+          }
+        },
+        "gradient_norm": 1.5446285009384155,
+        "parameter_norm": 99.96341705322266,
+        "probe": "First four fixed training chunks, eval mode, token-mean NLL",
+        "relative_random_1e3": [
+          2.0384788513183594e-05,
+          -8.344650268554688e-06,
+          -2.7418136596679688e-05
+        ]
+      },
+      "state": "finished",
+      "validation_nll": 1.394662320613861,
+      "wd": 25.6,
+      "width": 512
+    }
+  ]
+}

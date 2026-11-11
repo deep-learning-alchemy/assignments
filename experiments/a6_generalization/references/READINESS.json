@@ -1,0 +1,35 @@
+{
+  "default_baseline": "0baf962ea57fafacec22",
+  "default_epochs": 32,
+  "exceptions": {
+    "finetuning_protocols": {
+      "4a": {
+        "adaptation": "full",
+        "counts": [
+          30000
+        ],
+        "passes": [
+          1,
+          4,
+          16
+        ]
+      },
+      "4b": {
+        "adaptation": "full",
+        "counts": [
+          1000,
+          3000,
+          10000,
+          30000
+        ],
+        "passes": [
+          16
+        ]
+      }
+    },
+    "lr_wd_grid": 16,
+    "schedules": "variable horizon"
+  },
+  "pending_runs": {},
+  "ready_for_release": true
+}
