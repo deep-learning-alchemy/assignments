@@ -31,6 +31,24 @@ mounts the references read-only at `/root/shared_data/a6_generalization/v1`.
 `common.manifest()` reads the published file/checksum manifest. Original
 pretraining datasets, architecture runs and dropout banks are not supplied.
 
+## Use your own GPU
+
+Follow the [local GPU setup](../../gpu/README.md), then download the same released
+files as the Modal mount from [Hugging Face](https://huggingface.co/datasets/kothasuhas/dl_alchemy_a6_generalization)
+(about 2.25 GB; no account or token required). Run from the repository root:
+
+```bash
+export A6_REFERENCE_ROOT="$PWD/data/a6_generalization/v1"
+uv run hf download kothasuhas/dl_alchemy_a6_generalization --repo-type dataset \
+  --revision 145bebd16541824ae099735b57a830aeb410c716 --local-dir "$A6_REFERENCE_ROOT"
+```
+
+Keep `A6_REFERENCE_ROOT` set when running A6 code. The download includes the DNA
+training/validation arrays, all three pretrained initializations, and the supplied
+reference artifacts. Use `train(cfg)` instead of `launch(cfg)` in the example below
+to train on your local CUDA GPU. For fine-tuning, set `initialization` to
+`'related'`, `'dclm'`, or `'noise'` in `Config`.
+
 ## Analyze supplied data without a GPU
 
 ```bash

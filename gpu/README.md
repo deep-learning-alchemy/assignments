@@ -66,6 +66,9 @@ You can override those separately with `CONFIG_MODEL_DIR` and `CONFIG_DATA_DIR`.
 
 ## Download Data
 
+For Assignment 6, follow the [A6 local instructions](../experiments/a6_generalization/README.md#use-your-own-gpu)
+to download the DNA data, pretrained checkpoints, and references from Hugging Face.
+
 Download the raw binary dataset:
 
 ```bash
